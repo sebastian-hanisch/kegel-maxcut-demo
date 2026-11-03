@@ -85,8 +85,8 @@ st.markdown(
     """
 **Eine NP-schwere Aufgabe wird zu einem Kegelprogramm mit einem PSD-Kegel, und eine Zufallshyperebene macht aus der Lösung einen Schnitt.** MaxCut verlangt Vorzeichen `sᵢ ∈ {±1}` mit größtem `Σ wᵢⱼ (1 − sᵢ sⱼ)/2`. Ersetzt man `sᵢ sⱼ` durch `Xᵢⱼ`
 einer Matrix `X ⪰ 0` mit `Xᵢᵢ = 1` (die Gram-Matrix von Einheitsvektoren), erhält man ein **SDP** mit einer **oberen Schranke** für den Schnitt. Zerlegt man `X = V Vᵀ`, wirft eine Zufallshyperebene und setzt `sᵢ = sign(vᵢ · r)`, ist der
-**erwartete Schnitt exakt `Σ wᵢⱼ arccos(Xᵢⱼ)/π`** und mindestens **0,87856** mal die Schranke (Goemans, Williamson 1995). Auf Zufallsgraphen liegt er viel näher an der Schranke; scharf ist die Garantie nur bei wenigen Graphen
-(Fünfeck, Petersen-Graph). Das **Dual** ist ein Zertifikat: es beweist die Schranke, ohne den Schnitt zu kennen.
+**erwartete Schnitt exakt `Σ wᵢⱼ arccos(Xᵢⱼ)/π`** und mindestens **0,87856** mal die Schranke (Goemans, Williamson 1995). Auf Zufallsgraphen liegt er viel näher an der Schranke; nahezu scharf ist die Garantie nur beim Petersen-Graph,
+Fünfeck und K₃ liegen ebenfalls nahe dran. Das **Dual** ist ein Zertifikat: es beweist die Schranke, ohne den Schnitt zu kennen.
 Stück 12 der Reihe „Konvexe und konische Optimierung“; der Strang Relaxation beginnt.
 
 Weiter unten: **fünf Experimente** (**🔬**), **🚧 Wo die Annahmen enden** und der Expander **📐 Mathematische Formulierung**.
@@ -98,7 +98,7 @@ with st.expander("So funktioniert es", expanded=True):
         """
 1. **Die Aufgabe:** ein Graph mit Kantengewichten `wᵢⱼ`; ein Schnitt teilt die Knoten in zwei Seiten, sein Wert ist die Summe der Gewichte der Kanten zwischen den Seiten. Den größten Schnitt zu finden ist NP-schwer.
 2. **Die Relaxation:** statt Vorzeichen `sᵢ` Einheitsvektoren `vᵢ` (`‖vᵢ‖ = 1`), statt `sᵢ sⱼ` das Skalarprodukt `Xᵢⱼ = ⟨vᵢ, vⱼ⟩`. Die Matrix `X` ist positiv semidefinit mit Diagonale 1; `max Σ wᵢⱼ (1 − Xᵢⱼ)/2` ist ein **Kegelprogramm** im Format des Kerns (PSD-Kegel, Variablen: die Außerdiagonale).
-3. **Der Löser:** der primal-duale innere Punkt aus Stück 6 (10 bis 14 Iterationen, auch bei 30 Knoten); die Barriere des Kerns wäre ab 20 Knoten etwa zehnmal langsamer.
+3. **Der Löser:** der primal-duale innere Punkt aus Stück 6 (10 bis 15 Iterationen bei 10 bis 40 Knoten, wachsend mit n); die Barriere des Kerns ist mit einem BLAS-Thread bei 20 Knoten etwa 1,5-mal, bei 30 etwa 2-mal und bei 40 rund 7-mal langsamer (Größenordnung, rechnerabhängig).
 4. **Die Rundung:** `X = V Vᵀ`, ein Zufallsvektor `r`, `sᵢ = sign(vᵢ · r)`. Eine Kante wird mit Wahrscheinlichkeit `θᵢⱼ/π` geschnitten (`θᵢⱼ = arccos Xᵢⱼ`): der Erwartungswert ist eine Formel, kein Experiment.
 5. **Das Dual:** `Z = Diag(d) + W/2 ⪰ 0` liefert die Schranke `(Σ w + tr Z)/2`: ein bewiesener oberer Wert für jeden Schnitt.
         """
@@ -221,12 +221,12 @@ st.markdown(
     """
 | Annahme | Was passiert, wenn sie verletzt ist | Wer setzt an |
 |---|---|---|
-| **Die Garantie 0,87856 beschreibt die Rundung** | Sie ist eine Worst-Case-Garantie. Auf Zufallsgraphen liegt die erwartete Rundung bei etwa 0,91 bis 0,99 der Schranke (Experiment 2); nahe an der Garantie liegen nur wenige Graphen (Fünfeck, Petersen-Graph). Schlechte Fälle brauchen sehr große, speziell gebaute Graphen. | – |
+| **Die Garantie 0,87856 beschreibt die Rundung** | Sie ist eine Worst-Case-Garantie. Auf Zufallsgraphen liegt die erwartete Rundung bei etwa 0,90 bis 0,99 der Schranke (Experiment 2); nahe an der Garantie liegen nur wenige Graphen (Petersen-Graph, Fünfeck, K₃). Dass sich die Garantie im Grenzwert nicht verbessern lässt, braucht nach der Literatur sehr große, speziell gebaute Graphen (hier nicht gemessen). | – |
 | **Die Relaxation ist exakt, wenn die Lösung Rang 1 hat** | Das gilt in dieser Richtung (bipartite Graphen, Bäume, Gitter). Die Umkehrung nicht: bei K₄ und K₆ ist die Schranke exakt, die Lösung des Lösers hat aber Rang 3 und 5, weil der innere Punkt den Mittelpunkt der optimalen Menge liefert, nicht die Ecke (Experiment 4). | Stück 13 |
-| **Die Lösung hat den Rang, den die Aufgabe braucht** | Der Rang der Lösung ist eine Eigenschaft des Lösers, nicht des Graphen; gemessen sind 2 bis 4 bei Graphen G(n, ½) mit n bis 24 (bei dem dünnen Graphen des Schnellstarts ist er 9). Ein Verfahren, das den Rang vorgibt (Burer–Monteiro), liefert andere Lösungen. | Stück 13 |
-| **Die Schranke ist der Optimalwert** | Sie ist nur eine obere Schranke; der Unterschied zum Schnitt ist die Integralitätslücke (am größten beim Fünfeck, 0,8845). Das Dual beweist die Schranke, nicht die Optimalität des Schnitts. | – |
+| **Die Lösung hat den Rang, den die Aufgabe braucht** | Der Rang der Lösung ist eine Eigenschaft des Lösers, nicht des Graphen; gemessen sind 2 bis 3 bei Graphen G(n, ½) mit n bis 24 (bei dem dünnen Graphen des Schnellstarts ist er 9). Ein Verfahren, das den Rang vorgibt (Burer–Monteiro), liefert andere Lösungen. | Stück 13 |
+| **Die Schranke ist der Optimalwert** | Sie ist nur eine obere Schranke; der Unterschied zum Schnitt ist die Integralitätslücke (am größten unter den 14 Familien beim Fünfeck, 0,8845). Das Dual beweist die Schranke, nicht die Optimalität des Schnitts. | – |
 | **Eine Hyperebene genügt** | Eine Hyperebene erreicht im Mittel die erwartete Rundung; der beste von 10 bis 100 liegt meist beim exakten Schnitt (Experiment 3). Das ist eine Messung kleiner Graphen, keine Garantie. | – |
-| **Der Löser skaliert beliebig** | Das dichte KKT-System wächst mit `n²` Variablen: 1,3 s bei n = 30, 4 s bei n = 40 (Vormessung, nicht live). Für große Graphen braucht es Niedrigrang-Verfahren (Stück 13). Zeiten hängen vom Rechner ab und werden nicht getestet. | Stück 13 |
+| **Der Löser skaliert beliebig** | Das dichte KKT-System wächst mit `n²` Variablen: rund 1 s bei n = 30, einige Sekunden bei n = 40 (Größenordnung, nicht live). Für große Graphen braucht es Niedrigrang-Verfahren (Stück 13). Zeiten hängen vom Rechner ab und werden nicht getestet. | Stück 13 |
 | **Der exakte Schnitt ist immer verfügbar** | Nur bis n = 20 (Aufzählung aller 2^(n−1) Schnitte); darüber zeigt die App Schranke und Rundung ohne Vergleichswert. | – |
 """
 )
@@ -252,7 +252,7 @@ Mit $\alpha_{GW} = \min_{0 < \theta \le \pi} \frac{2}{\pi}\frac{\theta}{1 - \cos
 **Rang.** Nach Barvinok und Pataki gibt es eine optimale Lösung vom Rang $r$ mit $r(r+1)/2 \le n$ (hier nur als Verweis, nicht am Text nachgelesen); die Lösung des inneren Punkts ist der Mittelpunkt der optimalen Menge.
 
 **Literatur.** M. X. Goemans, D. P. Williamson: *Improved approximation algorithms for maximum cut and satisfiability problems using semidefinite programming*, Journal of the ACM 42 (6), 1995, S. 1115–1145 (die Garantie 0,87856 und die Zufallshyperebene).
-G. Pataki: *On the rank of extreme matrices in semidefinite programs and the multiplicity of optimal eigenvalues*, Mathematics of Operations Research 23 (2), 1998, S. 339–358 (Rang; die Aussage ist hier nicht am Text geprüft). Beweise der Arbeiten nicht nachgelesen; die Formel der Randwahrscheinlichkeit und die Konstante sind hier nachgerechnet.
+G. Pataki: *On the rank of extreme matrices in semidefinite programs and the multiplicity of optimal eigenvalues*, Mathematics of Operations Research 23 (2), 1998, S. 339–358 (Rang; die Aussage ist hier nicht am Text geprüft). Die NP-Härte von MaxCut ist ein Standardresultat (R. M. Karp 1972, Entscheidungsvariante NP-vollständig); hier nur als Verweis, nicht nachgelesen. Beweise der Arbeiten nicht nachgelesen; die Formel der Randwahrscheinlichkeit und die Konstante sind hier nachgerechnet.
         """
     )
 

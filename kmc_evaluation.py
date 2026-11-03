@@ -199,8 +199,8 @@ def verdict_stat(rows: list, s: Settings) -> tuple:
 def verdict_rounding(r: dict, s: Settings, main: dict) -> tuple:
     c = r["curve"]
     text = (f"Über {C.HYPER_SAMPLES} Hyperebenen: Mittelwert {de(r['mean'], 4)} ± {de(r['stderr'], 4)}, die Formel Σ w arccos(X)/π gibt {de(r['expected'], 4)}; der beste Schnitt der Stichprobe ist {num(r['max'])}"
-            + (f" (exakt {num(main['exact'])})" if main["exact"] is not None else "") + ". Der Erwartungswert des besten von k wächst von "
-            + f"{de(c[1], 3)} (k = 1) über {de(c[10], 3)} (k = 10) auf {de(c[100], 3)} (k = 100): wenige Hyperebenen genügen.")
+            + (f" (exakt {num(main['exact'])})" if main["exact"] is not None else "") + ". Der aus den Hyperebenen in Blöcken geschätzte Erwartungswert des besten von k wächst von "
+            + f"{de(c[1], 3)} (k = 1) über {de(c[10], 3)} (k = 10) auf {de(c[100], 3)} (k = 100): wenige Hyperebenen genügen auf diesem Graphen.")
     return "info", text
 
 
