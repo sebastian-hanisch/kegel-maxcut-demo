@@ -13,6 +13,7 @@ import time
 from dataclasses import dataclass
 
 import numpy as np
+from threadpoolctl import threadpool_limits
 
 import kegel_kern as K
 import kmc_graphs as G
@@ -80,6 +81,20 @@ def solve(W: np.ndarray, tol: float = 1e-9) -> SdpResult:
     off = Z - np.diag(np.diag(Z))
     dev = float(np.abs(off - np.triu(W, 1) / 2.0 - np.tril(W, -1) / 2.0).max())
     return SdpResult(X, Z, (total - res.value) / 2.0, (total + float(np.trace(Z))) / 2.0, res.status, res.iterations, sec, np.sort(np.linalg.eigvalsh(X))[::-1], float(np.linalg.eigvalsh(Z).min()), dev, n)
+
+
+def barrier_reference(W: np.ndarray, tol: float = 1e-9) -> tuple:
+    """Die Barriere des Kerns auf demselben Programm: (SDP-Wert, Newton-Schritte, Sekunden), mit **einem** BLAS-Thread.
+
+    Ohne diese Begrenzung ist die Barriere langsamer (gemessen 2026-11-03: bei n = 20 etwa 7-mal, bei n = 30 etwa 2,8-mal, bei n = 40 etwa 1,9-mal; BLAS-Überbuchung: die Matrizen sind klein,
+    mehrere Threads kosten mehr, als sie bringen); jeder Aufruf der Barriere in dieser Demo geht deshalb hier durch. Der primal-duale Löser begrenzt selbst (`kmc_solver.solve_pd`)."""
+    prob, _ = build(W)
+    total = G.total_weight(W)
+    with threadpool_limits(limits=1):
+        t0 = time.perf_counter()
+        res = K.solve_barrier(prob, tol=tol)
+        sec = time.perf_counter() - t0
+    return (total - res.value) / 2.0, res.newton_steps, sec
 
 
 def vectors(X: np.ndarray) -> np.ndarray:

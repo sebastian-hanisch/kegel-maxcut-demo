@@ -58,9 +58,26 @@ def test_the_dual_is_a_certificate():
 
 def test_the_kernel_barrier_finds_the_same_value():
     for W in (G.cycle(5), G.gnp(8, 0.5, 1)):
-        prob, pairs = S.build(W)
-        res = K.solve_barrier(prob, tol=1e-9)
-        assert (G.total_weight(W) - res.value) / 2 == pytest.approx(S.solve(W).value, abs=1e-6)
+        value, steps, seconds = S.barrier_reference(W, tol=1e-9)
+        assert value == pytest.approx(S.solve(W).value, abs=1e-6) and steps > 0 and seconds >= 0.0
+
+
+def test_the_barrier_runs_with_one_blas_thread_and_gives_the_thread_count_back(monkeypatch):
+    """Die Begrenzung auf einen BLAS-Thread gilt genau während des Aufrufs der Barriere (gemessen mit threadpoolctl, nicht an der Laufzeit) und wird danach zurückgesetzt."""
+    from threadpoolctl import threadpool_info
+
+    seen = []
+    real = K.solve_barrier
+
+    def spy(*args, **kwargs):
+        seen.append([lib["num_threads"] for lib in threadpool_info() if lib.get("user_api") == "blas"])
+        return real(*args, **kwargs)
+
+    before = [lib["num_threads"] for lib in threadpool_info() if lib.get("user_api") == "blas"]
+    monkeypatch.setattr(K, "solve_barrier", spy)
+    S.barrier_reference(G.cycle(5))
+    after = [lib["num_threads"] for lib in threadpool_info() if lib.get("user_api") == "blas"]
+    assert seen and all(all(n == 1 for n in counts) for counts in seen) and after == before
 
 
 def test_the_program_has_the_expected_shape():

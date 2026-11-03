@@ -98,7 +98,7 @@ with st.expander("So funktioniert es", expanded=True):
         """
 1. **Die Aufgabe:** ein Graph mit Kantengewichten `wᵢⱼ`; ein Schnitt teilt die Knoten in zwei Seiten, sein Wert ist die Summe der Gewichte der Kanten zwischen den Seiten. Den größten Schnitt zu finden ist NP-schwer.
 2. **Die Relaxation:** statt Vorzeichen `sᵢ` Einheitsvektoren `vᵢ` (`‖vᵢ‖ = 1`), statt `sᵢ sⱼ` das Skalarprodukt `Xᵢⱼ = ⟨vᵢ, vⱼ⟩`. Die Matrix `X` ist positiv semidefinit mit Diagonale 1; `max Σ wᵢⱼ (1 − Xᵢⱼ)/2` ist ein **Kegelprogramm** im Format des Kerns (PSD-Kegel, Variablen: die Außerdiagonale).
-3. **Der Löser:** der primal-duale innere Punkt aus Stück 6 (10 bis 15 Iterationen bei 10 bis 40 Knoten, wachsend mit n); die Barriere des Kerns ist mit einem BLAS-Thread bei 20 Knoten etwa 1,5-mal, bei 30 etwa 2-mal und bei 40 rund 7-mal langsamer (Größenordnung, rechnerabhängig).
+3. **Der Löser:** der primal-duale innere Punkt aus Stück 6 (10 bis 15 Iterationen bei 10 bis 40 Knoten, wachsend mit n); die Barriere des Kerns ist mit einem BLAS-Thread bei 20 Knoten etwa 1,4-mal, bei 30 etwa 2-mal und bei 40 rund 6- bis 7-mal langsamer (Größenordnung, rechnerabhängig; mit den Standard-Threads der BLAS-Bibliothek kommt noch das 2- bis 7-fache dazu).
 4. **Die Rundung:** `X = V Vᵀ`, ein Zufallsvektor `r`, `sᵢ = sign(vᵢ · r)`. Eine Kante wird mit Wahrscheinlichkeit `θᵢⱼ/π` geschnitten (`θᵢⱼ = arccos Xᵢⱼ`): der Erwartungswert ist eine Formel, kein Experiment.
 5. **Das Dual:** `Z = Diag(d) + W/2 ⪰ 0` liefert die Schranke `(Σ w + tr Z)/2`: ein bewiesener oberer Wert für jeden Schnitt.
         """
@@ -226,7 +226,7 @@ st.markdown(
 | **Die Lösung hat den Rang, den die Aufgabe braucht** | Der Rang der Lösung ist eine Eigenschaft des Lösers, nicht des Graphen; gemessen sind 2 bis 3 bei Graphen G(n, ½) mit n bis 24 (bei dem dünnen Graphen des Schnellstarts ist er 9). Ein Verfahren, das den Rang vorgibt (Burer–Monteiro), liefert andere Lösungen. | Stück 13 |
 | **Die Schranke ist der Optimalwert** | Sie ist nur eine obere Schranke; der Unterschied zum Schnitt ist die Integralitätslücke (am größten unter den 14 Familien beim Fünfeck, 0,8845). Das Dual beweist die Schranke, nicht die Optimalität des Schnitts. | – |
 | **Eine Hyperebene genügt** | Eine Hyperebene erreicht im Mittel die erwartete Rundung; der beste von 10 bis 100 liegt meist beim exakten Schnitt (Experiment 3). Das ist eine Messung kleiner Graphen, keine Garantie. | – |
-| **Der Löser skaliert beliebig** | Das dichte KKT-System wächst mit `n²` Variablen: rund 1 s bei n = 30, einige Sekunden bei n = 40 (Größenordnung, nicht live). Für große Graphen braucht es Niedrigrang-Verfahren (Stück 13). Zeiten hängen vom Rechner ab und werden nicht getestet. | Stück 13 |
+| **Der Löser skaliert beliebig** | Das dichte KKT-System wächst mit `n²` Variablen: rund 1 bis 2 s bei n = 30, 6 bis 8 s bei n = 40 (Größenordnung, nicht live). Für große Graphen braucht es Niedrigrang-Verfahren (Stück 13). Zeiten hängen vom Rechner ab und werden nicht getestet. | Stück 13 |
 | **Der exakte Schnitt ist immer verfügbar** | Nur bis n = 20 (Aufzählung aller 2^(n−1) Schnitte); darüber zeigt die App Schranke und Rundung ohne Vergleichswert. | – |
 """
 )
